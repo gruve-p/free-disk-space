@@ -8,15 +8,25 @@ branding:
 
 inputs:
   android:
-    description: "Remove Android runtime"
+    description: "Removes Android SDKs and Tools"
     required: false
     default: "true"
   dotnet:
-    description: "Remove .NET runtime"
+    description: "Removes .NET runtime and libraries"
     required: false
     default: "true"
   haskell:
-    description: "Remove Haskell runtime"
+    description: "Removes GHC (Haskell) artifacts"
+    required: false
+    default: "true"
+
+  docker-images:
+    description: "Removes cached Docker images"
+    required: false
+    default: "true"
+
+  codeql-images:
+    description: "Removes CodeQL Action Bundles"
     required: false
     default: "true"
 
@@ -32,7 +42,7 @@ inputs:
   tool-cache:
     description: "Remove image tool cache"
     required: false
-    default: "false"
+    default: "true"
 
   swap-storage:
     description: "Remove swap storage"
@@ -123,11 +133,11 @@ runs:
         echo ""
 
 
-        # Option: Remove Android library
+        # Option: Removes Android SDKs and Tools
 
         if [[ ${{ inputs.android }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
-          
+
           sudo rm -rf /usr/local/lib/android
 
           AFTER=$(getAvailableSpace)
@@ -135,29 +145,53 @@ runs:
           printSavedSpace $SAVED "Android library"
         fi
 
-        # Option: Remove .NET runtime
+        # Option: Removes .NET runtime and libraries
 
         if [[ ${{ inputs.dotnet }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
           # https://github.community/t/bigger-github-hosted-runners-disk-space/17267/11
           sudo rm -rf /usr/share/dotnet
-          
+
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
           printSavedSpace $SAVED ".NET runtime"
         fi
 
-        # Option: Remove Haskell runtime
+        # Option: Removes GHC (Haskell) artifacts
 
         if [[ ${{ inputs.haskell }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
-          sudo rm -rf /opt/ghc
-          
+          sudo rm -rf /usr/local/.ghcup/
+
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
           printSavedSpace $SAVED "Haskell runtime"
+        fi
+
+        # Option: Removes cached Docker images
+
+        if [[ ${{ inputs.docker-images }} == 'true' ]]; then
+          BEFORE=$(getAvailableSpace)
+
+          sudo docker image prune --all --force
+
+          AFTER=$(getAvailableSpace)
+          SAVED=$((AFTER-BEFORE))
+          printSavedSpace $SAVED "Docker images"
+        fi
+
+        # Option: Removes CodeQL Action Bundles
+
+        if [[ ${{ inputs.codeql-images }} == 'true' ]]; then
+          BEFORE=$(getAvailableSpace)
+
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+
+          AFTER=$(getAvailableSpace)
+          SAVED=$((AFTER-BEFORE))
+          printSavedSpace $SAVED "Codeql images"
         fi
 
         # Option: Remove large packages
@@ -166,15 +200,29 @@ runs:
         if [[ ${{ inputs.large-packages }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
+          # Select alternative apt mirror since the original one is unstable
+          sudo gem install apt-spy2
+          sudo apt-spy2 fix --commit --launchpad --country=US
+          sudo apt-get update
+
           sudo apt-get remove -y '^dotnet-.*'
           sudo apt-get remove -y '^llvm-.*'
           sudo apt-get remove -y 'php.*'
           sudo apt-get remove -y '^mongodb-.*'
           sudo apt-get remove -y '^mysql-.*'
-          sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+          sudo apt-get remove -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell microsoft-edge-stable mono-devel libgl1-mesa-dri
           sudo apt-get autoremove -y
           sudo apt-get clean
-          
+
+          sudo rm -rf /usr/local/graalvm/
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /usr/local/lib/node_modules
+          sudo rm -rf /opt/microsoft
+          sudo rm -rf /usr/lib/jvm
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/share/boost
+
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
           printSavedSpace $SAVED "Large misc. packages"
@@ -187,7 +235,7 @@ runs:
           BEFORE=$(getAvailableSpace)
 
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          
+
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
           printSavedSpace $SAVED "Tool cache"
@@ -201,7 +249,7 @@ runs:
           sudo swapoff -a
           sudo rm -f /mnt/swapfile
           free -h
-          
+
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
           printSavedSpace $SAVED "Swap storage"
