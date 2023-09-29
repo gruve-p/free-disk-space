@@ -37,6 +37,11 @@ inputs:
     required: false
     default: "true"
 
+  docker-images:
+    description: "Remove Docker images"
+    required: false
+    default: "true"
+
   # option inspired by:
   # https://github.com/actions/virtual-environments/issues/2875#issuecomment-1163392159
   tool-cache:
@@ -138,7 +143,7 @@ runs:
         if [[ ${{ inputs.android }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
-          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/local/lib/android || true
 
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
@@ -151,7 +156,7 @@ runs:
           BEFORE=$(getAvailableSpace)
 
           # https://github.community/t/bigger-github-hosted-runners-disk-space/17267/11
-          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/share/dotnet || true
 
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
@@ -163,7 +168,7 @@ runs:
         if [[ ${{ inputs.haskell }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
-          sudo rm -rf /usr/local/.ghcup/
+          sudo rm -rf /usr/local/.ghcup/ || true
 
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
@@ -205,14 +210,17 @@ runs:
           sudo apt-spy2 fix --commit --launchpad --country=US
           sudo apt-get update
 
-          sudo apt-get remove -y '^dotnet-.*'
-          sudo apt-get remove -y '^llvm-.*'
-          sudo apt-get remove -y 'php.*'
-          sudo apt-get remove -y '^mongodb-.*'
-          sudo apt-get remove -y '^mysql-.*'
-          sudo apt-get remove -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell microsoft-edge-stable mono-devel libgl1-mesa-dri
-          sudo apt-get autoremove -y
-          sudo apt-get clean
+          sudo apt-get remove -y '^aspnetcore-.*' || echo "::warning::The command [sudo apt-get remove -y '^aspnetcore-.*'] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y '^dotnet-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^dotnet-.*' --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y '^llvm-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^llvm-.*' --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y 'php.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y 'php.*' --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y '^mongodb-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mongodb-.*' --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y '^mysql-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mysql-.*' --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y google-cloud-sdk --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-sdk --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y google-cloud-cli --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-cli --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get autoremove -y || echo "::warning::The command [sudo apt-get autoremove -y] failed to complete successfully. Proceeding..."
+          sudo apt-get clean || echo "::warning::The command [sudo apt-get clean] failed to complete successfully. Proceeding..."
 
           sudo rm -rf /usr/local/graalvm/
           sudo rm -rf /usr/local/share/powershell
@@ -228,13 +236,25 @@ runs:
           printSavedSpace $SAVED "Large misc. packages"
         fi
 
+        # Option: Remove Docker images
+
+        if [[ ${{ inputs.docker-images }} == 'true' ]]; then
+          BEFORE=$(getAvailableSpace)
+
+          sudo docker image prune --all --force || true
+
+          AFTER=$(getAvailableSpace)
+          SAVED=$((AFTER-BEFORE))
+          printSavedSpace $SAVED "Docker images"
+        fi
+
         # Option: Remove tool cache
         # REF: https://github.com/actions/virtual-environments/issues/2875#issuecomment-1163392159
 
         if [[ ${{ inputs.tool-cache }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY" || true
 
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
@@ -246,8 +266,8 @@ runs:
         if [[ ${{ inputs.swap-storage }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
-          sudo swapoff -a
-          sudo rm -f /mnt/swapfile
+          sudo swapoff -a || true
+          sudo rm -f /mnt/swapfile || true
           free -h
 
           AFTER=$(getAvailableSpace)
