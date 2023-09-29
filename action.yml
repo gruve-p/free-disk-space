@@ -20,11 +20,6 @@ inputs:
     required: false
     default: "true"
 
-  docker-images:
-    description: "Removes cached Docker images"
-    required: false
-    default: "true"
-
   codeql-images:
     description: "Removes CodeQL Action Bundles"
     required: false
@@ -38,7 +33,7 @@ inputs:
     default: "true"
 
   docker-images:
-    description: "Remove Docker images"
+    description: "Remove cached Docker images"
     required: false
     default: "true"
 
@@ -175,24 +170,12 @@ runs:
           printSavedSpace $SAVED "Haskell runtime"
         fi
 
-        # Option: Removes cached Docker images
-
-        if [[ ${{ inputs.docker-images }} == 'true' ]]; then
-          BEFORE=$(getAvailableSpace)
-
-          sudo docker image prune --all --force
-
-          AFTER=$(getAvailableSpace)
-          SAVED=$((AFTER-BEFORE))
-          printSavedSpace $SAVED "Docker images"
-        fi
-
         # Option: Removes CodeQL Action Bundles
 
         if [[ ${{ inputs.codeql-images }} == 'true' ]]; then
           BEFORE=$(getAvailableSpace)
 
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /opt/hostedtoolcache/CodeQL || true
 
           AFTER=$(getAvailableSpace)
           SAVED=$((AFTER-BEFORE))
