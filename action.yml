@@ -202,6 +202,16 @@ runs:
           sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
           sudo apt-get remove -y google-cloud-sdk --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-sdk --fix-missing] failed to complete successfully. Proceeding..."
           sudo apt-get remove -y google-cloud-cli --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-cli --fix-missing] failed to complete successfully. Proceeding..."
+
+          sudo apt-get remove -y aria2 ansible shellcheck rpm xorriso zsync --fix-missing || echo "::debug::The command [sudo apt-get remove -y aria2 ansible shellcheck rpm xorriso zsync --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y esl-erlang gfortran-8 gfortran-9 imagemagick libmagickcore-dev --fix-missing || echo "::debug::The command [sudo apt-get remove -y esl-erlang gfortran-8 gfortran-9 imagemagick libmagickcore-dev --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y libmagickwand-dev libmagic-dev ant ant-optional kubectl --fix-missing || echo "::debug::The command [sudo apt-get remove -y libmagickwand-dev libmagic-dev ant ant-optional kubectl --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y mercurial apt-transport-https mono-complete libmysqlclient --fix-missing || echo "::debug::The command [sudo apt-get remove -y mercurial apt-transport-https mono-complete libmysqlclient --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y unixodbc-dev yarn chrpath libssl-dev libxft-dev --fix-missing || echo "::debug::The command [sudo apt-get remove -y unixodbc-dev yarn chrpath libssl-dev libxft-dev --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev --fix-missing || echo "::debug::The command [sudo apt-get remove -y libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y snmp pollinate libpq-dev postgresql-client ruby-full --fix-missing || echo "::debug::The command [sudo apt-get remove -y snmp pollinate libpq-dev postgresql-client ruby-full --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y sphinxsearch subversion microsoft-edge-stable --fix-missing || echo "::debug::The command [sudo apt-get remove -y sphinxsearch subversion microsoft-edge-stable --fix-missing] failed to complete successfully. Proceeding..."
+
           sudo apt-get autoremove -y || echo "::warning::The command [sudo apt-get autoremove -y] failed to complete successfully. Proceeding..."
           sudo apt-get clean || echo "::warning::The command [sudo apt-get clean] failed to complete successfully. Proceeding..."
 
